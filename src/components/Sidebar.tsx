@@ -1,8 +1,12 @@
 import { formatRelative, subDays } from "date-fns"
+import { useState } from "react"
 import { AiOutlineSearch } from "react-icons/ai"
 import { BsFilter } from "react-icons/bs"
 import createChat from "../assets/icons/create-chat.svg"
 import { useUser } from "../context/user"
+import AppDialog, { AppDialogProps } from "./Dialog"
+
+// TODO: set all data-tip
 
 const lastMsg =
   "latest message will show here Lorem ipsum, dolor sit amet consectetur adipisicing elit. Porro quasi doloremque, consequatur adipisci voluptatem expedita incidunt corrupti itaque non cum?"
@@ -10,20 +14,30 @@ const friendName = "danish sajjad"
 const friendDp = "/logo.svg"
 
 const Sidebar = () => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
   return (
     <>
-      <TopBar />
+      <AppDialog isOpen={isDialogOpen} setIsOpen={setIsDialogOpen} />
+      <TopBar setDialog={setIsDialogOpen} />
       <SearchBar />
 
       <div className="h-[calc(100vh-128px)] overflow-y-auto">
-        {Array.from({ length: 10 }).map((_, i) => (
+        {/* {Array.from({ length: 10 }).map((_, i) => (
           <FriendSlug
             friendDp={friendDp}
             friendName={friendName}
             lastMsg={lastMsg}
             key={i}
           />
-        ))}
+        ))} */}
+        {/* // ! TODO: fix it real quick */}
+        <button
+          className="tooltip w-full rounded bg-zinc-800 py-3 text-xl font-medium text-zinc-200 hover:bg-zinc-700"
+          data-tip="hello again"
+          onClick={() => setIsDialogOpen(true)}
+        >
+          Get Started
+        </button>
       </div>
     </>
   )
@@ -76,7 +90,7 @@ const SearchBar = () => {
   )
 }
 
-const TopBar = () => {
+const TopBar = ({ setDialog }: { setDialog: AppDialogProps["setIsOpen"] }) => {
   const { state } = useUser()
   return (
     <div className="flex w-full items-center justify-between bg-zinc-700 p-3">
@@ -85,7 +99,7 @@ const TopBar = () => {
         alt="user image"
         className="w-12 rounded-full"
       />
-      <IconBtn>
+      <IconBtn onClick={() => setDialog(true)}>
         <img src={createChat} alt="chat ico" className="w-8" />
       </IconBtn>
     </div>
@@ -103,8 +117,9 @@ const IconBtn = ({
 }) => {
   return (
     <button
-      className={` rounded-full p-2 hover:bg-zinc-600 ${className}`}
+      className={`tooltip tooltip-bottom rounded-full p-2 hover:bg-zinc-600 ${className}`}
       onClick={onClick}
+      data-tip="hello"
     >
       {children}
     </button>
