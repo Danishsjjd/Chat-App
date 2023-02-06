@@ -1,3 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  ::-webkit-scrollbar {
+    @apply w-1 rounded;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded bg-zinc-500;
+  }
+}
