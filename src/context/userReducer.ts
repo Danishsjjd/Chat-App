@@ -1,21 +1,27 @@
-import { User } from "firebase/auth"
+import { StoreUser } from "../types/user"
 
 export const enum ActionType {
   SetUser = "SET_USER",
   SetUsernameDialog = "SET_USERNAME_DIALOG",
   NotLogin = "NOT_LOGIN",
+  YesLogin = "YEST_LOGIN",
 }
 
 type InsertActionType<T extends {}> = T & { type: ActionType }
 
 interface SetUser {
   type: ActionType.SetUser
-  payload: User
+  payload: StoreUser
+}
+
+interface YesLogin {
+  type: ActionType.YesLogin
+  payload: undefined
 }
 
 interface SetUsernameDialog {
   type: ActionType.SetUsernameDialog
-  payload: undefined
+  payload: boolean
 }
 
 interface NotLogin {
@@ -24,14 +30,16 @@ interface NotLogin {
 }
 
 export type InitialStateType = {
-  user: User | null
+  user: StoreUser | null
   isLogin: boolean
   userCachePresent: boolean
   checkingUserInfo: boolean
   usernameDialog: boolean
 }
 
-export type Action = InsertActionType<SetUser | NotLogin | SetUsernameDialog>
+export type Action = InsertActionType<
+  SetUser | NotLogin | SetUsernameDialog | YesLogin
+>
 
 const userReducer = (
   state: InitialStateType,
@@ -43,8 +51,10 @@ const userReducer = (
       return { ...state, user: payload, checkingUserInfo: false, isLogin: true }
     case ActionType.NotLogin:
       return { ...state, checkingUserInfo: false, isLogin: false, user: null }
+    case ActionType.YesLogin:
+      return { ...state, checkingUserInfo: false, isLogin: true, user: null }
     case ActionType.SetUsernameDialog:
-      return state
+      return { ...state, usernameDialog: payload }
     default:
       return state
   }

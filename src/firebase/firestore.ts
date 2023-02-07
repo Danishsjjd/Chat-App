@@ -15,13 +15,18 @@ export const findCurrentUser = async (user: User) => {
   const userDoc = doc(store, "users", user.uid) as DocumentReference<StoreUser>
   try {
     const username = await getDoc(userDoc)
-    return username.data()
+    if (username.exists()) return username.data()
+    return false
   } catch (e) {
     return false
   }
 }
 
-export const createCurrentUsername = async (user: User, username: string) => {
+export const createCurrentUsername = async (
+  user: User,
+  username: string,
+  onSuccess?: () => void
+) => {
   const batch = writeBatch(store)
 
   const userDoc = doc(store, "users", user.uid)
@@ -38,6 +43,7 @@ export const createCurrentUsername = async (user: User, username: string) => {
     batch.set(usernameDoc, { uid: user.uid })
 
     await batch.commit()
+    if (onSuccess) onSuccess()
   } catch (e) {
     // TODO:
   }
