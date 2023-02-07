@@ -2,6 +2,7 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithPopup,
+  signOut,
 } from "firebase/auth"
 import { useEffect } from "react"
 import { useUser } from "../context/user"
@@ -21,22 +22,25 @@ export const authorize = async () => {
   }
 }
 
+export const logout = () => {
+  if (window.confirm("Are you Sure?")) {
+    signOut(auth)
+  }
+}
+
 export const useOnAuthChange = () => {
   const { dispatch } = useUser()
 
   useEffect(() => {
     return onAuthStateChanged(auth, async (user) => {
       if (user) {
-        dispatch({ type: ActionType.YesLogin, payload: undefined })
+        dispatch({ type: ActionType.SetLogin, payload: true })
         const storeUser = await findCurrentUser(user)
 
         if (storeUser)
-          dispatch({ type: ActionType.SetUser, payload: storeUser })
+          dispatch({ type: ActionType.FoundUser, payload: storeUser })
         else dispatch({ type: ActionType.SetUsernameDialog, payload: true })
-
-        return
-      }
-      dispatch({ type: ActionType.NotLogin, payload: undefined })
+      } else dispatch({ type: ActionType.SetLogin, payload: false })
     })
   }, [])
 }

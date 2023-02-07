@@ -1,11 +1,11 @@
+import { User } from "firebase/auth"
 import { useEffect, useState } from "react"
 import { Navigate, Outlet } from "react-router-dom"
 import UsernameDialog from "../components/UsernameDIalog"
 import { useUser } from "../context/user"
 import { ActionType } from "../context/userReducer"
-import { createCurrentUsername } from "../firebase/firestore"
 import { auth } from "../firebase/config"
-import { User } from "firebase/auth"
+import { createCurrentUsername } from "../firebase/firestore"
 
 type Props = {
   redirect?: string
@@ -28,11 +28,10 @@ const PrivateRoutes = ({
 
   if (!isLogin) return <Navigate to={redirect} replace />
 
-  const handleSubmit = (e: React.FormEvent, username: string) => {
-    e.preventDefault()
-
-    createCurrentUsername(auth.currentUser as User, username, () => {
+  const handleSubmit = (username: string) => {
+    createCurrentUsername(auth.currentUser as User, username, (user) => {
       dispatch({ type: ActionType.SetUsernameDialog, payload: false })
+      dispatch({ type: ActionType.FoundUser, payload: user })
     })
   }
 

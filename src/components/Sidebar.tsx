@@ -1,10 +1,13 @@
 import { formatRelative, subDays } from "date-fns"
+import toast from "react-hot-toast"
 import { useState } from "react"
 import { AiOutlineSearch } from "react-icons/ai"
 import { BsFilter } from "react-icons/bs"
 import createChat from "../assets/icons/create-chat.svg"
 import { useUser } from "../context/user"
-import AppDialog, { AppDialogProps } from "./Dialog"
+import { logout } from "../firebase/auth"
+import { AppDialogProps } from "./Dialog"
+import UsernameDialog from "./UsernameDIalog"
 
 // TODO: set all data-tip
 
@@ -16,32 +19,20 @@ const friendDp = "/logo.svg"
 const Sidebar = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = (username: string) => {
+    toast(`bro we'll find your friend ${username}`)
   }
 
   return (
     <>
-      <AppDialog
-        isOpen={isDialogOpen}
-        setIsOpen={setIsDialogOpen}
-        title="Payment"
-      >
-        <form className="mt-3 space-y-3" onSubmit={handleSubmit}>
-          <div className="form-control w-full">
-            <label className="label" htmlFor="name">
-              <span className="label-text font-medium text-zinc-900">
-                Enter Your Friend Username
-              </span>
-            </label>
-            <input type="text" className="input-bordered input w-full" />
-          </div>
-          <button className="btn-primary btn" type="submit">
-            Create Chat
-          </button>
-        </form>
-      </AppDialog>
-
+      <UsernameDialog
+        isDialogOpen={isDialogOpen}
+        btnText="Create Chat"
+        fieldTitle="Enter Your Friend Username"
+        handleSubmit={handleSubmit}
+        setIsDialogOpen={setIsDialogOpen}
+        title={"Friend's Name"}
+      />
       <TopBar setDialog={setIsDialogOpen} />
       <SearchBar />
 
@@ -119,13 +110,18 @@ const TopBar = ({ setDialog }: { setDialog: AppDialogProps["setIsOpen"] }) => {
   return (
     <div className="flex w-full items-center justify-between bg-zinc-700 p-3">
       <img
-        src={state.user?.photoURL as string}
+        src={state.user?.photoURL}
         alt="user image"
         className="w-12 rounded-full"
       />
-      <IconBtn onClick={() => setDialog(true)}>
-        <img src={createChat} alt="chat ico" className="w-8" />
-      </IconBtn>
+      <div className="flex items-center justify-center">
+        <IconBtn onClick={() => setDialog(true)}>
+          <img src={createChat} alt="chat ico" className="w-8" />
+        </IconBtn>
+        <button className="btn-ghost btn" onClick={logout}>
+          Logout
+        </button>
+      </div>
     </div>
   )
 }

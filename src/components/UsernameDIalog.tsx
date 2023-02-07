@@ -6,7 +6,7 @@ type Props = {
   isDialogOpen: boolean
   title: string
   btnText: string
-  handleSubmit: (e: React.FormEvent, username: string) => void
+  handleSubmit: (username: string) => void
   fieldTitle: string
   preventClose?: boolean
 }
@@ -30,7 +30,10 @@ const UsernameDialog = ({
     >
       <form
         className="mt-3 space-y-3"
-        onSubmit={(e) => handleSubmit(e, username)}
+        onSubmit={(e) => {
+          e.preventDefault()
+          handleSubmit(username)
+        }}
       >
         <div className="form-control w-full">
           <label className="label" htmlFor="name">

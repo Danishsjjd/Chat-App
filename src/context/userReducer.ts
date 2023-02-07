@@ -1,22 +1,16 @@
 import { StoreUser } from "../types/user"
 
 export const enum ActionType {
-  SetUser = "SET_USER",
+  FoundUser = "SET_USER",
   SetUsernameDialog = "SET_USERNAME_DIALOG",
-  NotLogin = "NOT_LOGIN",
-  YesLogin = "YEST_LOGIN",
+  SetLogin = "SET_LOGIN",
 }
 
 type InsertActionType<T extends {}> = T & { type: ActionType }
 
 interface SetUser {
-  type: ActionType.SetUser
+  type: ActionType.FoundUser
   payload: StoreUser
-}
-
-interface YesLogin {
-  type: ActionType.YesLogin
-  payload: undefined
 }
 
 interface SetUsernameDialog {
@@ -24,9 +18,9 @@ interface SetUsernameDialog {
   payload: boolean
 }
 
-interface NotLogin {
-  type: ActionType.NotLogin
-  payload: undefined
+interface SetLogin {
+  type: ActionType.SetLogin
+  payload: boolean
 }
 
 export type InitialStateType = {
@@ -37,9 +31,7 @@ export type InitialStateType = {
   usernameDialog: boolean
 }
 
-export type Action = InsertActionType<
-  SetUser | NotLogin | SetUsernameDialog | YesLogin
->
+export type Action = InsertActionType<SetUser | SetLogin | SetUsernameDialog>
 
 const userReducer = (
   state: InitialStateType,
@@ -47,12 +39,10 @@ const userReducer = (
 ): InitialStateType => {
   const { payload, type } = actions
   switch (type) {
-    case ActionType.SetUser:
+    case ActionType.FoundUser:
       return { ...state, user: payload, checkingUserInfo: false, isLogin: true }
-    case ActionType.NotLogin:
-      return { ...state, checkingUserInfo: false, isLogin: false, user: null }
-    case ActionType.YesLogin:
-      return { ...state, checkingUserInfo: false, isLogin: true, user: null }
+    case ActionType.SetLogin:
+      return { ...state, checkingUserInfo: false, isLogin: payload, user: null }
     case ActionType.SetUsernameDialog:
       return { ...state, usernameDialog: payload }
     default:
