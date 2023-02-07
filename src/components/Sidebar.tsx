@@ -15,9 +15,33 @@ const friendDp = "/logo.svg"
 
 const Sidebar = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+  }
+
   return (
     <>
-      <AppDialog isOpen={isDialogOpen} setIsOpen={setIsDialogOpen} />
+      <AppDialog
+        isOpen={isDialogOpen}
+        setIsOpen={setIsDialogOpen}
+        title="Payment"
+      >
+        <form className="mt-3 space-y-3" onSubmit={handleSubmit}>
+          <div className="form-control w-full">
+            <label className="label" htmlFor="name">
+              <span className="label-text font-medium text-zinc-900">
+                Enter Your Friend Username
+              </span>
+            </label>
+            <input type="text" className="input-bordered input w-full" />
+          </div>
+          <button className="btn-primary btn" type="submit">
+            Create Chat
+          </button>
+        </form>
+      </AppDialog>
+
       <TopBar setDialog={setIsDialogOpen} />
       <SearchBar />
 
@@ -30,7 +54,7 @@ const Sidebar = () => {
             key={i}
           />
         ))} */}
-        {/* // ! TODO: fix it real quick */}
+        {/* // ! TODO: fix data-tip not showing */}
         <button
           className="tooltip w-full rounded bg-zinc-800 py-3 text-xl font-medium text-zinc-200 hover:bg-zinc-700"
           data-tip="hello again"

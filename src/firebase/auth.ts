@@ -9,5 +9,6 @@ export const authorize = async () => {
   } catch (e) {
     // TODO:
     // add toast
+    localStorage.removeItem("isLogin")
   }
 }

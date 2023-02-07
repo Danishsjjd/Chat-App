@@ -7,6 +7,7 @@ const initialState: InitialStateType = {
   user: null,
   userCachePresent:
     JSON.parse(localStorage.getItem("isLogin") || "false") === true,
+  usernameDialog: false,
 }
 
 const UserContext = createContext<{

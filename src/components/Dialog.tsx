@@ -4,15 +4,24 @@ import { Dispatch, Fragment, ReactNode, SetStateAction } from "react"
 export type AppDialogProps = {
   isOpen: boolean
   setIsOpen: Dispatch<SetStateAction<boolean>>
+  title: string
+  children: ReactNode
+  preventClose?: boolean
 }
 
-export default function AppDialog({ isOpen, setIsOpen }: AppDialogProps) {
+export default function AppDialog({
+  isOpen,
+  setIsOpen,
+  children,
+  title,
+  preventClose = false,
+}: AppDialogProps) {
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog
         as="div"
         className="relative z-10"
-        onClose={() => setIsOpen(false)}
+        onClose={() => !preventClose && setIsOpen(false)}
       >
         <Transition.Child
           as={Fragment}
@@ -23,11 +32,11 @@ export default function AppDialog({ isOpen, setIsOpen }: AppDialogProps) {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
+          <div className="fixed inset-0 bg-black/50" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+          <div className="flex min-h-full items-start justify-center p-4 pt-20 text-center">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -37,29 +46,14 @@ export default function AppDialog({ isOpen, setIsOpen }: AppDialogProps) {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-zinc-200 p-6 text-left align-middle shadow-xl transition-all">
                 <Dialog.Title
                   as="h3"
                   className="text-lg font-medium leading-6 text-gray-900"
                 >
-                  Payment successful
+                  {title}
                 </Dialog.Title>
-                <div className="mt-2">
-                  <p className="text-sm text-gray-500">
-                    Your payment has been successfully submitted. We’ve sent you
-                    an email with all of the details of your order.
-                  </p>
-                </div>
-
-                <div className="mt-4">
-                  <button
-                    type="button"
-                    className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Got it, thanks!
-                  </button>
-                </div>
+                {children}
               </Dialog.Panel>
             </Transition.Child>
           </div>
