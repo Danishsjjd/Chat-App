@@ -1,11 +1,11 @@
 import { User } from "firebase/auth"
 import { useEffect, useState } from "react"
 import { Navigate, Outlet } from "react-router-dom"
-import UsernameDialog from "../components/UsernameDIalog"
+import UsernameDialog from "../components/UsernameDialog"
 import { useUser } from "../context/user"
 import { ActionType } from "../context/userReducer"
 import { auth } from "../firebase/config"
-import { createCurrentUsername } from "../firebase/firestore"
+import { createCurrentUsername } from "../firebase/firestore/user"
 
 type Props = {
   redirect?: string

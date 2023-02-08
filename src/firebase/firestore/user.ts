@@ -1,13 +1,13 @@
 import { User } from "firebase/auth"
 import { doc, DocumentReference, getDoc, writeBatch } from "firebase/firestore"
-import { StoreUser } from "../types/user"
-import { store } from "./config"
+import { StoreUser } from "../../types/user"
+import { db } from "../config"
 
 // user
 export const findCurrentUser = async (
   user: User
 ): Promise<null | StoreUser> => {
-  const userDoc = doc(store, "users", user.uid) as DocumentReference<StoreUser>
+  const userDoc = doc(db, "users", user.uid) as DocumentReference<StoreUser>
   try {
     const username = await getDoc(userDoc)
     if (username.exists()) return username.data()
@@ -22,10 +22,10 @@ export const createCurrentUsername = async (
   username: string,
   onSuccess?: (user: StoreUser) => void
 ) => {
-  const batch = writeBatch(store)
+  const batch = writeBatch(db)
 
-  const userDoc = doc(store, "users", user.uid)
-  const usernameDoc = doc(store, "username", username)
+  const userDoc = doc(db, "users", user.uid)
+  const usernameDoc = doc(db, "username", username)
 
   const userObj: StoreUser = {
     username: username.toLowerCase(),

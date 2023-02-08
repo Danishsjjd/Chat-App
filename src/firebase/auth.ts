@@ -8,7 +8,7 @@ import { useEffect } from "react"
 import { useUser } from "../context/user"
 import { ActionType } from "../context/userReducer"
 import { auth } from "./config"
-import { findCurrentUser } from "./firestore"
+import { findCurrentUser } from "./firestore/user"
 
 export const authorize = async () => {
   const googleProvider = new GoogleAuthProvider()

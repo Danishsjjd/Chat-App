@@ -1,13 +1,14 @@
 import { formatRelative, subDays } from "date-fns"
-import toast from "react-hot-toast"
 import { useState } from "react"
 import { AiOutlineSearch } from "react-icons/ai"
 import { BsFilter } from "react-icons/bs"
 import createChat from "../assets/icons/create-chat.svg"
 import { useUser } from "../context/user"
 import { logout } from "../firebase/auth"
+import { findFriend } from "../firebase/firestore/chat"
+import { StoreUser } from "../types/user"
 import { AppDialogProps } from "./Dialog"
-import UsernameDialog from "./UsernameDIalog"
+import UsernameDialog from "./UsernameDialog"
 
 // TODO: set all data-tip
 
@@ -17,10 +18,13 @@ const friendName = "danish sajjad"
 const friendDp = "/logo.svg"
 
 const Sidebar = () => {
+  const {
+    state: { user },
+  } = useUser()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   const handleSubmit = (username: string) => {
-    toast(`bro we'll find your friend ${username}`)
+    findFriend(username, user as StoreUser)
   }
 
   return (
@@ -37,15 +41,16 @@ const Sidebar = () => {
       <SearchBar />
 
       <div className="h-[calc(100vh-128px)] overflow-y-auto">
-        {/* {Array.from({ length: 10 }).map((_, i) => (
+        {Array.from({ length: 10 }).map((_, i) => (
           <FriendSlug
             friendDp={friendDp}
             friendName={friendName}
             lastMsg={lastMsg}
             key={i}
           />
-        ))} */}
+        ))}
         {/* // ! TODO: fix data-tip not showing */}
+        {/* // TODO: remove this button when find chat */}
         <button
           className="tooltip w-full rounded bg-zinc-800 py-3 text-xl font-medium text-zinc-200 hover:bg-zinc-700"
           data-tip="hello again"
