@@ -1,5 +1,8 @@
-export type Chat = {
+export type Chat = { messages: Check[] }
+
+type Check = {
   // ! root doc have same id as ChatBetween
+  id: string
   username: string
   message?: string
   file?: string
@@ -21,6 +24,6 @@ export type ChatUser = {
 
 export type ChatRelatedUsers = ChatUser & {
   chatId: string
-  lastMsg: string
+  latestMessage: string
   createdAt: Date
 }

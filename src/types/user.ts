@@ -1,7 +1,6 @@
 export interface StoreUser {
   username: string
   photoURL: string
-  displayName: string
   uid: string
 }
 

@@ -25,9 +25,20 @@ const Sidebar = () => {
       setChats((pre) => {
         if (userData.username === user?.username) return pre
 
-        const exists =
-          pre.filter((data) => data.chatId === userData.chatId).length > 0
-        if (exists) return pre
+        const exists = pre.some((data) => data.chatId === userData.chatId)
+
+        if (exists)
+          return pre.map((data) => {
+            if (data.chatId == userData.chatId)
+              // TODO: update isReadLastestMsg in cloud
+              return {
+                ...data,
+                latestMessage: userData.latestMessage,
+                createdAt: userData.createdAt,
+                isReadLatestMsg: true,
+              }
+            return data
+          })
 
         return [...pre, userData]
       })
@@ -63,7 +74,7 @@ const Sidebar = () => {
             <FriendSlug
               friendDp={chat.photoURL}
               friendName={chat.username}
-              lastMsg={chat.lastMsg}
+              lastMsg={chat.latestMessage}
               key={chat.chatId}
               createdAt={
                 typeof chat.createdAt === "number"
@@ -153,11 +164,14 @@ const TopBar = ({ setDialog }: { setDialog: AppDialogProps["setIsOpen"] }) => {
   const { state } = useUser()
   return (
     <div className="flex h-20 w-full items-center justify-between bg-zinc-700 p-3">
-      <img
-        src={state.user?.photoURL}
-        alt="user image"
-        className="w-12 rounded-full"
-      />
+      <div className="flex items-center justify-center gap-2">
+        <img
+          src={state.user?.photoURL}
+          alt="user image"
+          className="w-12 rounded-full"
+        />
+        <h4 className="text-lg font-medium ">{state.user?.username}</h4>
+      </div>
       <div className="flex items-center justify-center">
         <IconBtn onClick={() => setDialog(true)} tooltip="start new chat">
           <img src={createChat} alt="chat ico" className="w-8" />

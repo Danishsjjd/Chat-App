@@ -35,7 +35,6 @@ export const createCurrentUsername = async (
   const userObj: StoreUser = {
     username: username.toLowerCase(),
     photoURL: user.photoURL as string,
-    displayName: user.displayName as string,
     uid: user.uid,
   }
 

@@ -1,19 +1,25 @@
 import {
+  addDoc,
+  arrayUnion,
   collection,
   CollectionReference,
   doc,
   DocumentReference,
+  getDoc,
   getDocs,
   limit,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
+  Timestamp,
+  updateDoc,
   where,
   writeBatch,
 } from "firebase/firestore"
 import toast from "react-hot-toast"
-import { ChatBetween, ChatRelatedUsers, ChatUser } from "../../types/chat"
+import { Chat, ChatBetween, ChatRelatedUsers, ChatUser } from "../../types/chat"
 import { StoreUser } from "../../types/user"
 import { db } from "../config"
 
@@ -70,12 +76,8 @@ export const findFriend = async (
   const docId = crypto.randomUUID()
 
   const docRef = doc(chatBetweenRef, docId) as DocumentReference<ChatBetween>
-  const nestedDocRef = () =>
-    doc(
-      docRef,
-      "chatRelatedUser",
-      crypto.randomUUID()
-    ) as DocumentReference<ChatUser>
+  const nestedDocRef = (userId: string) =>
+    doc(docRef, "chatRelatedUser", userId) as DocumentReference<ChatUser>
 
   if (friendData) {
     const batch = writeBatch(db)
@@ -86,12 +88,12 @@ export const findFriend = async (
       createdAt: serverTimestamp(),
     })
 
-    batch.set(nestedDocRef(), {
+    batch.set(nestedDocRef(friendData.uid), {
       photoURL: friendData.photoURL,
       username: friendData.username,
       isReadLatestMsg: false,
     })
-    batch.set(nestedDocRef(), {
+    batch.set(nestedDocRef(user.uid), {
       photoURL: user.photoURL,
       username: user.username,
       isReadLatestMsg: true,
@@ -103,7 +105,6 @@ export const findFriend = async (
   return false
 }
 
-// TODO: will use in side bar
 export const getAllCurrentUserChats = async (
   user: StoreUser,
   cb?: (users: ChatRelatedUsers) => void
@@ -129,13 +130,13 @@ export const getAllCurrentUserChats = async (
     })
 
     for (const key of chatBetween) {
-      const chatRelatedUserRef = collection(
+      const chatUserRef = collection(
         db,
         "chatBetween",
         key.id,
         "chatRelatedUser"
       ) as CollectionReference<ChatUser>
-      const chatRelated = await getDocs(chatRelatedUserRef)
+      const chatRelated = await getDocs(chatUserRef)
 
       chatRelated.docs.forEach((doc) => {
         const chatRelatedDoc = doc.data()
@@ -143,7 +144,7 @@ export const getAllCurrentUserChats = async (
           cb({
             ...chatRelatedDoc,
             chatId: key.id,
-            lastMsg: key.latestMessage,
+            latestMessage: key.latestMessage,
             createdAt: key.createAt || new Date().getTime(),
           })
       })
@@ -153,4 +154,70 @@ export const getAllCurrentUserChats = async (
   return unsub
 }
 
+type Props = {
+  chatId: string
+  user: StoreUser
+  message: string
+  haveChat: boolean
+}
+
+// TODO: handle errors
+export const sendMessage = async ({
+  chatId,
+  user,
+  message,
+  haveChat = false,
+}: Props) => {
+  const chatRef = doc(db, "chat", chatId) as DocumentReference<Chat>
+
+  const batch = writeBatch(db)
+
+  // TODO: types not working check why?
+  const messages = arrayUnion({
+    id: crypto.randomUUID(),
+    message,
+    username: user.username,
+    createAt: Timestamp.now(),
+  })
+
+  haveChat
+    ? batch.update(chatRef, {
+        messages,
+      })
+    : batch.set(chatRef, { messages })
+
+  const chatRelatedUserRef = doc(
+    db,
+    "chatBetween",
+    chatId
+  ) as DocumentReference<ChatBetween>
+
+  batch.update(chatRelatedUserRef, {
+    createdAt: serverTimestamp(),
+    latestMessage: message,
+  })
+
+  const userChatBetweenRef = doc(
+    db,
+    "chatBetween",
+    chatId,
+    "chatRelatedUser",
+    user.uid
+  ) as DocumentReference<ChatUser>
+
+  batch.update(userChatBetweenRef, { isReadLatestMsg: true })
+
+  await batch.commit()
+}
+
 // TODO: individual route onSnapshot chats collection
+export const messagesListener = async (
+  chatId: string,
+  cb?: (chat: Chat) => void
+) => {
+  const chatRef = doc(db, "chat", chatId) as DocumentReference<Chat>
+  return onSnapshot(chatRef, (doc) => {
+    const data = doc.data()
+    if (cb) cb(data ?? { messages: [] })
+  })
+}
