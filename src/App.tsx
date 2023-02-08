@@ -6,6 +6,7 @@ import { useOnAuthChange } from "./firebase/auth"
 import Auth from "./pages/Auth"
 import PrivateRoutes from "./pages/PrivateRoutes"
 import PublicRoutes from "./pages/PublicRoutes"
+import Username from "./pages/Username"
 
 const App = () => {
   useOnAuthChange()
@@ -14,6 +15,8 @@ const App = () => {
       <Route path="/" element={<PublicRoutes />}>
         <Route path="/auth" element={<Auth />} />
       </Route>
+
+      <Route path="/username" element={<Username />} />
 
       <Route path="/" element={<PrivateRoutes />}>
         <Route path="/" element={<ChatLayout />}>

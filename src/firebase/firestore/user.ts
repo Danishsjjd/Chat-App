@@ -1,5 +1,6 @@
 import { User } from "firebase/auth"
 import { doc, DocumentReference, getDoc, writeBatch } from "firebase/firestore"
+import { toast } from "react-hot-toast"
 import { StoreUser } from "../../types/user"
 import { db } from "../config"
 
@@ -26,6 +27,10 @@ export const createCurrentUsername = async (
 
   const userDoc = doc(db, "users", user.uid)
   const usernameDoc = doc(db, "username", username)
+
+  const getUsername = await getDoc(usernameDoc)
+  if (getUsername.exists())
+    return toast.error("Username is already exists", { position: "top-right" })
 
   const userObj: StoreUser = {
     username: username.toLowerCase(),

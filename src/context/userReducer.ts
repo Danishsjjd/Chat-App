@@ -2,8 +2,7 @@ import { StoreUser } from "../types/user"
 
 export const enum ActionType {
   FoundUser = "SET_USER",
-  SetUsernameDialog = "SET_USERNAME_DIALOG",
-  NotLogin = "NOT_LOGIN",
+  SetLogin = "NOT_LOGIN",
 }
 
 type InsertActionType<T extends {}> = T & { type: ActionType }
@@ -13,17 +12,12 @@ interface SetUser {
   payload: StoreUser
 }
 
-interface SetUsernameDialog {
-  type: ActionType.SetUsernameDialog
+interface SetLogin {
+  type: ActionType.SetLogin
   payload: boolean
 }
 
-interface SetLogin {
-  type: ActionType.NotLogin
-  payload: undefined
-}
-
-export type Action = InsertActionType<SetUser | SetLogin | SetUsernameDialog>
+export type Action = InsertActionType<SetUser | SetLogin>
 
 export type InitialStateType = {
   user: StoreUser | null
@@ -41,10 +35,8 @@ const userReducer = (
   switch (type) {
     case ActionType.FoundUser:
       return { ...state, user: payload, checkingUserInfo: false, isLogin: true }
-    case ActionType.NotLogin:
-      return { ...state, checkingUserInfo: false, isLogin: false, user: null }
-    case ActionType.SetUsernameDialog:
-      return { ...state, usernameDialog: payload }
+    case ActionType.SetLogin:
+      return { ...state, checkingUserInfo: false, isLogin: payload, user: null }
     default:
       return state
   }

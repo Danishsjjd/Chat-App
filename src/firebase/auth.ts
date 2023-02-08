@@ -5,6 +5,7 @@ import {
   signOut,
 } from "firebase/auth"
 import { useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { useUser } from "../context/user"
 import { ActionType } from "../context/userReducer"
 import { auth } from "./config"
@@ -30,16 +31,20 @@ export const logout = () => {
 
 export const useOnAuthChange = () => {
   const { dispatch } = useUser()
+  const navigate = useNavigate()
 
   useEffect(() => {
     return onAuthStateChanged(auth, async (user) => {
       if (user) {
         const storeUser = await findCurrentUser(user)
 
-        if (storeUser)
+        if (storeUser) {
           dispatch({ type: ActionType.FoundUser, payload: storeUser })
-        else dispatch({ type: ActionType.SetUsernameDialog, payload: true })
-      } else dispatch({ type: ActionType.NotLogin, payload: undefined })
+        } else {
+          navigate("/username", { replace: true })
+          dispatch({ type: ActionType.SetLogin, payload: true })
+        }
+      } else dispatch({ type: ActionType.SetLogin, payload: false })
     })
   }, [])
 }
