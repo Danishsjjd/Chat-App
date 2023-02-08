@@ -10,10 +10,17 @@ export type ChatBetween = {
   // ! save id as Chat
   latestMessage: string
   users: string[] // id will be userId
+  createdAt: Date
 }
 
 export type ChatUser = {
-  photoUrl: string
+  photoURL: string
   username: string
   isReadLatestMsg: boolean
+}
+
+export type ChatRelatedUsers = ChatUser & {
+  chatId: string
+  lastMsg: string
+  createdAt: Date
 }

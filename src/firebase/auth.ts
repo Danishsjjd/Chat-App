@@ -38,12 +38,12 @@ export const useOnAuthChange = () => {
       if (user) {
         const storeUser = await findCurrentUser(user)
 
-        // if (storeUser) {
-        //   dispatch({ type: ActionType.FoundUser, payload: storeUser })
-        // } else {
-        //   navigate("/username", { replace: true })
-        //   dispatch({ type: ActionType.SetLogin, payload: true })
-        // }
+        if (storeUser) {
+          dispatch({ type: ActionType.FoundUser, payload: storeUser })
+        } else {
+          navigate("/username", { replace: true })
+          dispatch({ type: ActionType.SetLogin, payload: true })
+        }
       } else dispatch({ type: ActionType.SetLogin, payload: false })
     })
   }, [])

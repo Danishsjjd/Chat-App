@@ -1,32 +1,46 @@
 import { formatRelative, subDays } from "date-fns"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { AiOutlineSearch } from "react-icons/ai"
 import { BsFilter } from "react-icons/bs"
 import createChat from "../assets/icons/create-chat.svg"
 import { useUser } from "../context/user"
 import { logout } from "../firebase/auth"
-import { findFriend } from "../firebase/firestore/chat"
+import { findFriend, getAllCurrentUserChats } from "../firebase/firestore/chat"
+import { ChatRelatedUsers } from "../types/chat"
 import { StoreUser } from "../types/user"
 import { AppDialogProps } from "./Dialog"
 import UsernameDialog from "./UsernameDialog"
-
-// TODO: set all data-tip
-
-const lastMsg =
-  "latest message will show here Lorem ipsum, dolor sit amet consectetur adipisicing elit. Porro quasi doloremque, consequatur adipisci voluptatem expedita incidunt corrupti itaque non cum?"
-const friendName = "danish sajjad"
-const friendDp = "/logo.svg"
+import { Link, useParams } from "react-router-dom"
 
 const Sidebar = () => {
   const {
     state: { user },
   } = useUser()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [chats, setChats] = useState<ChatRelatedUsers[]>([])
+
+  useEffect(() => {
+    const unsub = getAllCurrentUserChats(user as StoreUser, (userData) => {
+      setChats((pre) => {
+        if (userData.username === user?.username) return pre
+
+        const exists =
+          pre.filter((data) => data.chatId === userData.chatId).length > 0
+        if (exists) return pre
+
+        return [...pre, userData]
+      })
+    })
+    return () => {
+      unsub.then((data) => {
+        if (data) data()
+      })
+    }
+  }, [])
 
   const handleSubmit = (username: string) => {
     findFriend(username, user as StoreUser)
   }
-
   return (
     <>
       <UsernameDialog
@@ -41,23 +55,26 @@ const Sidebar = () => {
       <SearchBar />
 
       <div className="h-[calc(100vh-128px)] overflow-y-auto">
-        {Array.from({ length: 10 }).map((_, i) => (
-          <FriendSlug
-            friendDp={friendDp}
-            friendName={friendName}
-            lastMsg={lastMsg}
-            key={i}
-          />
-        ))}
-        {/* // ! TODO: fix data-tip not showing */}
-        {/* // TODO: remove this button when find chat */}
-        <button
-          className="tooltip w-full rounded bg-zinc-800 py-3 text-xl font-medium text-zinc-200 hover:bg-zinc-700"
-          data-tip="hello again"
-          onClick={() => setIsDialogOpen(true)}
-        >
-          Get Started
-        </button>
+        {chats.length > 0 ? (
+          chats.map((chat) => (
+            <FriendSlug
+              friendDp={chat.photoURL}
+              friendName={chat.username}
+              lastMsg={chat.lastMsg}
+              key={chat.chatId}
+              createdAt={(chat.createdAt as any).toMillis()}
+              chatId={chat.chatId}
+            />
+          ))
+        ) : (
+          <button
+            className="tooltip tooltip-bottom w-full rounded bg-zinc-800 py-3 text-xl font-medium text-zinc-200 hover:bg-zinc-700"
+            data-tip="Start Conversation"
+            onClick={() => setIsDialogOpen(true)}
+          >
+            Get Started
+          </button>
+        )}
       </div>
     </>
   )
@@ -67,26 +84,41 @@ type FriendProps = {
   friendDp: string
   lastMsg: string
   friendName: string
+  createdAt: Date
+  chatId: string
 }
 
-const FriendSlug = ({}: FriendProps) => {
+const FriendSlug = ({
+  friendDp,
+  friendName,
+  lastMsg,
+  createdAt,
+  chatId,
+}: FriendProps) => {
+  const { id } = useParams()
+  const isActive = id === chatId
   return (
-    <div className="flex h-20 w-full cursor-pointer items-center justify-between gap-4 pl-2 pr-4 hover:bg-zinc-700/30">
+    <Link
+      className={`flex h-20 w-full cursor-pointer items-center justify-between gap-4 pl-2 pr-4 hover:bg-zinc-700/30 ${
+        isActive && "bg-zinc-700/30"
+      }`}
+      to={`/chat/${chatId}`}
+    >
       <img
         src={`${friendDp}`}
         alt="friends chat"
         className="aspect-square h-12 w-12 rounded-full border border-green-800 object-cover "
       />
-      <div>
-        <div className="flex items-center justify-between gap-3">
+      <div className="w-full">
+        <div className="flex w-full items-center justify-between gap-3">
           <h3 className="text-xl font-medium line-clamp-1">{friendName}</h3>
           <div className="text-zinc-400">
-            {formatRelative(subDays(new Date(), 3), new Date())}
+            {formatRelative(subDays(createdAt, 3), new Date())}
           </div>
         </div>
         <p className="text-zinc-400 line-clamp-1">{lastMsg}</p>
       </div>
-    </div>
+    </Link>
   )
 }
 
@@ -94,7 +126,7 @@ const SearchBar = () => {
   return (
     <div className="flex items-center justify-between gap-3 p-2">
       <div className="flex flex-grow items-center justify-center rounded bg-zinc-700 px-2">
-        <IconBtn>
+        <IconBtn tooltip="search">
           <AiOutlineSearch className="" />
         </IconBtn>
         <input
@@ -103,7 +135,7 @@ const SearchBar = () => {
           placeholder="Search Chat"
         />
       </div>
-      <IconBtn>
+      <IconBtn tooltip="show unread chats">
         <BsFilter className="" />
       </IconBtn>
     </div>
@@ -120,7 +152,7 @@ const TopBar = ({ setDialog }: { setDialog: AppDialogProps["setIsOpen"] }) => {
         className="w-12 rounded-full"
       />
       <div className="flex items-center justify-center">
-        <IconBtn onClick={() => setDialog(true)}>
+        <IconBtn onClick={() => setDialog(true)} tooltip="start new chat">
           <img src={createChat} alt="chat ico" className="w-8" />
         </IconBtn>
         <button className="btn-ghost btn" onClick={logout}>
@@ -135,16 +167,18 @@ const IconBtn = ({
   children,
   className,
   onClick,
+  tooltip,
 }: {
   children: React.ReactNode
   className?: string
   onClick?: (e: React.MouseEvent) => void
+  tooltip: string
 }) => {
   return (
     <button
       className={`tooltip tooltip-bottom rounded-full p-2 hover:bg-zinc-600 ${className}`}
       onClick={onClick}
-      data-tip="hello"
+      data-tip={tooltip}
     >
       {children}
     </button>
