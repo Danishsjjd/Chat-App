@@ -1,14 +1,12 @@
 import { Navigate, Outlet } from "react-router-dom"
+import SkeletonHolder from "../components/SkeletonHolder"
 import { useUser } from "../context/user"
 type Props = {
   redirect?: string
-  Skeleton?: () => JSX.Element
+  Skeleton?: React.FC
 }
 
-const PublicRoutes = ({
-  redirect = "/",
-  Skeleton = () => <span>Loading...</span>,
-}: Props) => {
+const PublicRoutes = ({ redirect = "/", Skeleton = SkeletonHolder }: Props) => {
   const { state } = useUser()
   const { checkingUserInfo, isLogin } = state
   if (checkingUserInfo) return <Skeleton />

@@ -1,15 +1,16 @@
 import { Navigate, Outlet } from "react-router-dom"
+import SkeletonHolder from "../components/SkeletonHolder"
 import { useUser } from "../context/user"
 
 type Props = {
   redirect?: string
-  Skeleton?: () => JSX.Element
+  Skeleton?: React.FC
 }
 
 // TODO: Add Spinner instead of show loading text
 const PrivateRoutes = ({
   redirect = "/auth",
-  Skeleton = () => <span>Loading...</span>,
+  Skeleton = SkeletonHolder,
 }: Props) => {
   const { state } = useUser()
   const { checkingUserInfo } = state

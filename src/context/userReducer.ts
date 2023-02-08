@@ -22,9 +22,7 @@ export type Action = InsertActionType<SetUser | SetLogin>
 export type InitialStateType = {
   user: StoreUser | null
   isLogin: boolean
-  userCachePresent: boolean
   checkingUserInfo: boolean
-  usernameDialog: boolean
 }
 
 const userReducer = (
