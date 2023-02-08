@@ -1,10 +1,30 @@
+import { useState, useReducer } from "react"
 import { FcGoogle } from "react-icons/fc"
-import { authorize } from "../firebase/auth"
+import { authorize, signUpWithEmail } from "../firebase/auth"
 
 const listStyle =
   "flex gap-5 before:inline-grid before:min-h-[40px] before:min-w-[40px] before:max-h-[40px] before:max-w-[40px] before:place-items-center before:rounded-full before:bg-emerald-400 before:text-sm before:font-bold before:text-primary-neutral before:shadow-md before:shadow-black/20 before:content-[counter(howToBuy)] before:[counter-increment:howToBuy]"
 
+type AuthData = {
+  email: string
+  password: string
+}
+
 const Auth = () => {
+  const [isGoogleAuth, setIsGoogleAuth] = useState(true)
+
+  const [{ email, password }, updateEvent] = useReducer(
+    (prev: AuthData, next: Partial<AuthData>) => {
+      return { ...prev, ...next }
+    },
+    { email: "", password: "" } as AuthData
+  )
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    signUpWithEmail(email, password)
+  }
+
   return (
     <section>
       {/* background */}
@@ -34,14 +54,51 @@ const Auth = () => {
                 Easy To Use Just Sign In With Google
               </li>
             </ol>
-            <button
-              type="button"
-              onClick={authorize}
-              className="flex flex-grow flex-col items-center justify-center"
-            >
-              <FcGoogle size={"15rem"} />
-              <span className="text-lg font-medium">Sign Up With Google</span>
-            </button>
+            {isGoogleAuth ? (
+              <button
+                type="button"
+                onClick={authorize}
+                className="flex flex-grow flex-col items-center justify-center"
+              >
+                <FcGoogle size={"15rem"} />
+                <span className="text-lg font-medium">Sign Up With Google</span>
+              </button>
+            ) : (
+              <form
+                className="flex flex-grow flex-col items-center justify-center gap-3 p-3"
+                onSubmit={handleSubmit}
+              >
+                <input
+                  type="text"
+                  className="input-ghost input w-full text-black focus-within:text-white"
+                  placeholder="Enter Your Email"
+                  value={email}
+                  onChange={(e) => updateEvent({ email: e.target.value })}
+                />
+                <input
+                  type="password"
+                  className="input-ghost input w-full text-black focus-within:text-white"
+                  placeholder="Enter Password"
+                  value={password}
+                  onChange={(e) => updateEvent({ password: e.target.value })}
+                />
+                <button className="btn-ghost btn" type="submit">
+                  Submit
+                </button>
+              </form>
+            )}
+          </div>
+          {/* authentication with */}
+          <div className="mt-3 flex items-center justify-center gap-1 pt-4 font-medium">
+            <label htmlFor="authProvider">
+              To Continue With Email & Password Check This Box
+            </label>
+            <input
+              id="authProvider"
+              type="checkbox"
+              className="checkbox-primary checkbox"
+              onChange={(e) => setIsGoogleAuth(!e.target.checked)}
+            />
           </div>
         </div>
       </div>

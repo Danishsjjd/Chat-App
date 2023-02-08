@@ -6,6 +6,7 @@ import {
   getDocs,
   limit,
   onSnapshot,
+  orderBy,
   query,
   serverTimestamp,
   where,
@@ -17,7 +18,15 @@ import { StoreUser } from "../../types/user"
 import { db } from "../config"
 
 // TODO: see below comments
-export const findFriend = async (friendUsername: string, user: StoreUser) => {
+export const findFriend = async (
+  friendUsername: string,
+  user: StoreUser
+): Promise<boolean> => {
+  const err = "user is not exists"
+  if (friendUsername == user.username) {
+    toast.error(err)
+    return false
+  }
   const collectionRef = collection(
     db,
     "users"
@@ -28,13 +37,35 @@ export const findFriend = async (friendUsername: string, user: StoreUser) => {
     limit(1)
   )
   const data = await getDocs(queryRef)
-  if (data.docs.length <= 0) return toast.error("user is not exists")
+  if (data.docs.length <= 0) {
+    toast.error(err)
+    return false
+  }
 
-  const chatBetweenRef = collection(db, "chatBetween")
+  const chatBetweenRef = collection(
+    db,
+    "chatBetween"
+  ) as CollectionReference<ChatBetween>
 
   const [friendData] = data.docs.map((doc) => {
     return doc.data()
   })
+
+  const q = query(
+    chatBetweenRef,
+    where("users", "array-contains-any", [user.uid, friendData.uid])
+  )
+
+  const isExists = await getDocs(q)
+
+  const check = isExists.docs.map((data) => data.data())
+
+  for (const key of check) {
+    if (key.users.includes(friendData.uid) && key.users.includes(user.uid)) {
+      toast.error("chat is already exists")
+      return false
+    }
+  }
 
   const docId = crypto.randomUUID()
 
@@ -67,7 +98,9 @@ export const findFriend = async (friendUsername: string, user: StoreUser) => {
     })
 
     await batch.commit()
+    return true
   }
+  return false
 }
 
 // TODO: will use in side bar
@@ -79,7 +112,11 @@ export const getAllCurrentUserChats = async (
     db,
     "chatBetween"
   ) as CollectionReference<ChatBetween>
-  const q = query(chatBetweenRef, where("users", "array-contains", user.uid))
+  const q = query(
+    chatBetweenRef,
+    where("users", "array-contains", user.uid),
+    orderBy("createdAt", "desc")
+  )
 
   const unsub = onSnapshot(q, async (data) => {
     const chatBetween = data.docs.map((collectionBetweenInstance) => {
@@ -107,7 +144,7 @@ export const getAllCurrentUserChats = async (
             ...chatRelatedDoc,
             chatId: key.id,
             lastMsg: key.latestMessage,
-            createdAt: key.createAt,
+            createdAt: key.createAt || new Date().getTime(),
           })
       })
     }

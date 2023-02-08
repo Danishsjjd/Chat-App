@@ -1,7 +1,8 @@
-import { formatRelative, subDays } from "date-fns"
+import { formatRelative } from "date-fns"
 import { useEffect, useState } from "react"
 import { AiOutlineSearch } from "react-icons/ai"
 import { BsFilter } from "react-icons/bs"
+import { Link, useParams } from "react-router-dom"
 import createChat from "../assets/icons/create-chat.svg"
 import { useUser } from "../context/user"
 import { logout } from "../firebase/auth"
@@ -9,8 +10,8 @@ import { findFriend, getAllCurrentUserChats } from "../firebase/firestore/chat"
 import { ChatRelatedUsers } from "../types/chat"
 import { StoreUser } from "../types/user"
 import { AppDialogProps } from "./Dialog"
+import IconBtn from "./IconBtn"
 import UsernameDialog from "./UsernameDialog"
-import { Link, useParams } from "react-router-dom"
 
 const Sidebar = () => {
   const {
@@ -38,8 +39,10 @@ const Sidebar = () => {
     }
   }, [])
 
-  const handleSubmit = (username: string) => {
-    findFriend(username, user as StoreUser)
+  const handleSubmit = async (username: string) => {
+    findFriend(username, user as StoreUser).then((data) => {
+      if (data) setIsDialogOpen(false)
+    })
   }
   return (
     <>
@@ -54,7 +57,7 @@ const Sidebar = () => {
       <TopBar setDialog={setIsDialogOpen} />
       <SearchBar />
 
-      <div className="h-[calc(100vh-128px)] overflow-y-auto">
+      <div className="h-[calc(100vh-136px)] overflow-y-auto">
         {chats.length > 0 ? (
           chats.map((chat) => (
             <FriendSlug
@@ -62,7 +65,11 @@ const Sidebar = () => {
               friendName={chat.username}
               lastMsg={chat.lastMsg}
               key={chat.chatId}
-              createdAt={(chat.createdAt as any).toMillis()}
+              createdAt={
+                typeof chat.createdAt === "number"
+                  ? chat.createdAt
+                  : (chat.createdAt as any).toMillis()
+              }
               chatId={chat.chatId}
             />
           ))
@@ -113,7 +120,7 @@ const FriendSlug = ({
         <div className="flex w-full items-center justify-between gap-3">
           <h3 className="text-xl font-medium line-clamp-1">{friendName}</h3>
           <div className="text-zinc-400">
-            {formatRelative(subDays(createdAt, 3), new Date())}
+            {formatRelative(createdAt, new Date())}
           </div>
         </div>
         <p className="text-zinc-400 line-clamp-1">{lastMsg}</p>
@@ -145,7 +152,7 @@ const SearchBar = () => {
 const TopBar = ({ setDialog }: { setDialog: AppDialogProps["setIsOpen"] }) => {
   const { state } = useUser()
   return (
-    <div className="flex w-full items-center justify-between bg-zinc-700 p-3">
+    <div className="flex h-20 w-full items-center justify-between bg-zinc-700 p-3">
       <img
         src={state.user?.photoURL}
         alt="user image"
@@ -160,28 +167,6 @@ const TopBar = ({ setDialog }: { setDialog: AppDialogProps["setIsOpen"] }) => {
         </button>
       </div>
     </div>
-  )
-}
-
-const IconBtn = ({
-  children,
-  className,
-  onClick,
-  tooltip,
-}: {
-  children: React.ReactNode
-  className?: string
-  onClick?: (e: React.MouseEvent) => void
-  tooltip: string
-}) => {
-  return (
-    <button
-      className={`tooltip tooltip-bottom rounded-full p-2 hover:bg-zinc-600 ${className}`}
-      onClick={onClick}
-      data-tip={tooltip}
-    >
-      {children}
-    </button>
   )
 }
 
