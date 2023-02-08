@@ -34,13 +34,12 @@ export const useOnAuthChange = () => {
   useEffect(() => {
     return onAuthStateChanged(auth, async (user) => {
       if (user) {
-        dispatch({ type: ActionType.SetLogin, payload: true })
         const storeUser = await findCurrentUser(user)
 
         if (storeUser)
           dispatch({ type: ActionType.FoundUser, payload: storeUser })
         else dispatch({ type: ActionType.SetUsernameDialog, payload: true })
-      } else dispatch({ type: ActionType.SetLogin, payload: false })
+      } else dispatch({ type: ActionType.NotLogin, payload: undefined })
     })
   }, [])
 }

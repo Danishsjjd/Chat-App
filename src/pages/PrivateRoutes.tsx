@@ -12,6 +12,7 @@ type Props = {
   Skeleton?: () => JSX.Element
 }
 
+// TODO: Add Spinner instead of show loading text
 const PrivateRoutes = ({
   redirect = "/auth",
   Skeleton = () => <span>Loading...</span>,
