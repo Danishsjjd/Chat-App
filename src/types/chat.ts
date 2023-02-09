@@ -1,4 +1,11 @@
-export type Chat = { messages: Check[] }
+export type Chat = {
+  // ! root doc have same id as ChatBetween
+  id: string
+  username: string
+  message?: string
+  file?: string
+  createAt: Date // <- index here
+}
 
 type Check = {
   // ! root doc have same id as ChatBetween

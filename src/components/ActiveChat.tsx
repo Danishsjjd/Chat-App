@@ -7,33 +7,27 @@ import { messagesListener, sendMessage } from "../firebase/firestore/chat"
 import { Chat } from "../types/chat"
 import { StoreUser } from "../types/user"
 import IconBtn from "./IconBtn"
+import { CurrentUserSvg, FriendSvg } from "./Svg"
 
 const ActiveChat = () => {
-  const [haveChat, setHaveChat] = useState(true)
   return (
-    <div className="flex h-full flex-col">
+    <div className="relative h-full">
       <TopBar />
-      <Messages setHaveChat={setHaveChat} haveChat={haveChat} />
-      <MessageInput haveChat={haveChat} />
+      <Messages />
+      <MessageInput />
     </div>
   )
 }
 
-const Messages = ({
-  setHaveChat,
-  haveChat,
-}: {
-  setHaveChat: Dispatch<SetStateAction<boolean>>
-  haveChat: boolean
-}) => {
+const Messages = ({}) => {
   const { id } = useParams()
-  const [{ messages }, setMessages] = useState<Chat>({ messages: [] })
-  // TODO: remove
+  const [messages, setMessages] = useState<Chat[]>([])
+  const {
+    state: { user },
+  } = useUser()
+
   useEffect(() => {
     const unsub = messagesListener(id as string, (chat) => {
-      if (chat.messages.length > 0 && !haveChat) setHaveChat(true)
-      else if (chat.messages.length <= 0 && haveChat) setHaveChat(false)
-
       setMessages(chat)
     })
     return () => {
@@ -41,22 +35,36 @@ const Messages = ({
     }
   }, [id])
 
-  const betterTypeMessages = messages.map((data) => ({
-    ...data,
-    createAt:
-      typeof data.createAt == "number"
-        ? data.createAt
-        : ((data.createAt as any).toMillis() as number),
-  }))
   return (
-    <div className="flex-grow">
-      {betterTypeMessages
-        .sort((a, b) => b.createAt - a.createAt)
-        // TODO: check if we can find a better way
-        .reverse()
-        .map((data) => {
-          return <div key={data.id}>{data.message}</div>
-        })}
+    <div className="max-h-[calc(100vh-80px)] space-y-1 overflow-y-auto p-4 pb-[90px]">
+      {messages.map((data) => {
+        const isUserMsg = data.username == user?.username
+        return (
+          <div
+            key={data.id}
+            className={`flex max-w-[49%]  ${
+              isUserMsg ? "ml-auto justify-end" : "justify-start"
+            }`}
+          >
+            <p
+              className={`relative bg-green-700 p-2 ${
+                isUserMsg
+                  ? " rounded-l rounded-bl rounded-br"
+                  : " rounded-r rounded-br rounded-bl"
+              }`}
+            >
+              <span
+                className={`absolute top-0 text-green-700 ${
+                  isUserMsg ? "-right-2" : "-left-2"
+                }`}
+              >
+                {isUserMsg ? <CurrentUserSvg /> : <FriendSvg />}
+              </span>
+              <span>{data.message}</span>
+            </p>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -65,21 +73,25 @@ const TopBar = () => {
   return <div className="h-20 w-full rounded bg-zinc-700"></div>
 }
 
-const MessageInput = ({ haveChat }: { haveChat: boolean }) => {
+const MessageInput = ({}) => {
   const { id } = useParams()
   const { state } = useUser()
   const [message, setMessage] = useState("")
+
   const msgSendHandler = (e: React.FormEvent) => {
     e.preventDefault()
     sendMessage({
       message,
       chatId: id as string,
       user: state.user as StoreUser,
-      haveChat,
+      cb() {
+        setMessage("")
+      },
     })
   }
+
   return (
-    <div className="flex h-20 items-center gap-3 bg-zinc-800 p-2 pb-5">
+    <div className="absolute bottom-0 flex h-20 w-full items-center gap-3 bg-zinc-800 p-2 pb-5">
       <IconBtn tooltip="send files" className="tooltip-top hover:bg-zinc-500">
         <MdPhotoSizeSelectActual />
       </IconBtn>

@@ -1,20 +1,15 @@
 import {
-  addDoc,
-  arrayUnion,
   collection,
   CollectionReference,
   doc,
   DocumentReference,
-  getDoc,
   getDocs,
   limit,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
-  setDoc,
   Timestamp,
-  updateDoc,
   where,
   writeBatch,
 } from "firebase/firestore"
@@ -105,6 +100,7 @@ export const findFriend = async (
   return false
 }
 
+// TODO: Add loader
 export const getAllCurrentUserChats = async (
   user: StoreUser,
   cb?: (users: ChatRelatedUsers) => void
@@ -158,33 +154,27 @@ type Props = {
   chatId: string
   user: StoreUser
   message: string
-  haveChat: boolean
+  cb?: () => void
 }
 
 // TODO: handle errors
-export const sendMessage = async ({
-  chatId,
-  user,
-  message,
-  haveChat = false,
-}: Props) => {
-  const chatRef = doc(db, "chat", chatId) as DocumentReference<Chat>
+export const sendMessage = async ({ chatId, user, message, cb }: Props) => {
+  const chatRef = doc(
+    db,
+    "chat",
+    chatId,
+    "messages",
+    crypto.randomUUID()
+  ) as DocumentReference<Chat>
 
   const batch = writeBatch(db)
 
-  // TODO: types not working check why?
-  const messages = arrayUnion({
+  batch.set(chatRef, {
     id: crypto.randomUUID(),
     message,
     username: user.username,
     createAt: Timestamp.now(),
   })
-
-  haveChat
-    ? batch.update(chatRef, {
-        messages,
-      })
-    : batch.set(chatRef, { messages })
 
   const chatRelatedUserRef = doc(
     db,
@@ -208,16 +198,24 @@ export const sendMessage = async ({
   batch.update(userChatBetweenRef, { isReadLatestMsg: true })
 
   await batch.commit()
+  // TODO: handle errors
+  if (cb) cb()
 }
 
 // TODO: individual route onSnapshot chats collection
 export const messagesListener = async (
   chatId: string,
-  cb?: (chat: Chat) => void
+  cb?: (chat: Chat[]) => void
 ) => {
-  const chatRef = doc(db, "chat", chatId) as DocumentReference<Chat>
-  return onSnapshot(chatRef, (doc) => {
-    const data = doc.data()
-    if (cb) cb(data ?? { messages: [] })
+  const chatRef = collection(
+    db,
+    "chat",
+    chatId,
+    "messages"
+  ) as CollectionReference<Chat>
+  const q = query(chatRef, orderBy("createAt", "asc"))
+  return onSnapshot(q, (doc) => {
+    const data = doc.docs.map((msg) => msg.data())
+    if (cb) cb(data)
   })
 }
