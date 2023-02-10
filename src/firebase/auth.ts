@@ -22,7 +22,7 @@ export const signUpWithEmail = (email: string, password: string) => {
     success: "Successfully Login",
   })
 }
-// TODO:
+// TODO: implement ui
 export const signInWithEmail = (email: string, password: string) =>
   toast.promise(signInWithEmailAndPassword(auth, email, password), {
     error: (e: AuthError) => e.message,
@@ -36,7 +36,7 @@ export const authorize = async () => {
     await signInWithPopup(auth, googleProvider)
     localStorage.setItem("isLogin", "true")
   } catch (e) {
-    // TODO:
+    // TODO: show an error to end user
     // add toast
     localStorage.removeItem("isLogin")
   }

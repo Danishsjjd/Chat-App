@@ -7,7 +7,6 @@ type Props = {
   Skeleton?: React.FC
 }
 
-// TODO: Add Spinner instead of show loading text
 const PrivateRoutes = ({
   redirect = "/auth",
   Skeleton = SkeletonHolder,

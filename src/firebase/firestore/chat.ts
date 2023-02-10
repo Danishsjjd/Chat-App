@@ -18,7 +18,6 @@ import { Chat, ChatBetween, ChatRelatedUsers, ChatUser } from "../../types/chat"
 import { StoreUser } from "../../types/user"
 import { db } from "../config"
 
-// TODO: see below comments
 export const findFriend = async (
   friendUsername: string,
   user: StoreUser
@@ -100,7 +99,7 @@ export const findFriend = async (
   return false
 }
 
-// TODO: Add loader
+// TODO: Add loader in sidebar
 export const getAllCurrentUserChats = async (
   user: StoreUser,
   cb?: (users: ChatRelatedUsers) => void
@@ -198,11 +197,9 @@ export const sendMessage = async ({ chatId, user, message, cb }: Props) => {
   batch.update(userChatBetweenRef, { isReadLatestMsg: true })
 
   await batch.commit()
-  // TODO: handle errors
   if (cb) cb()
 }
 
-// TODO: individual route onSnapshot chats collection
 export const messagesListener = async (
   chatId: string,
   cb?: (chat: Chat[]) => void

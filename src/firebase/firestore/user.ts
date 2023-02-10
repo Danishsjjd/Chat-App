@@ -46,6 +46,6 @@ export const createCurrentUsername = async (
     await batch.commit()
     if (onSuccess) onSuccess(userObj)
   } catch (e) {
-    // TODO:
+    // TODO: handle errors
   }
 }

@@ -1,4 +1,4 @@
-export const CurrentUserSvg = () => (
+export const CurrentUserMsgCorner = () => (
   <svg
     viewBox="0 0 8 13"
     height="13"
@@ -21,7 +21,7 @@ export const CurrentUserSvg = () => (
   </svg>
 )
 
-export const FriendSvg = () => (
+export const FriendMsgCorner = () => (
   <svg
     viewBox="0 0 8 13"
     height="13"

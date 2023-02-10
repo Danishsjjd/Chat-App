@@ -1,4 +1,4 @@
-import { useEffect, useState, Dispatch, SetStateAction } from "react"
+import { useEffect, useState } from "react"
 import { IoSend } from "react-icons/io5"
 import { MdPhotoSizeSelectActual } from "react-icons/md"
 import { useParams } from "react-router-dom"
@@ -7,7 +7,7 @@ import { messagesListener, sendMessage } from "../firebase/firestore/chat"
 import { Chat } from "../types/chat"
 import { StoreUser } from "../types/user"
 import IconBtn from "./IconBtn"
-import { CurrentUserSvg, FriendSvg } from "./Svg"
+import { CurrentUserMsgCorner, FriendMsgCorner } from "../assets/icons/corner"
 
 const ActiveChat = () => {
   return (
@@ -58,7 +58,7 @@ const Messages = ({}) => {
                   isUserMsg ? "-right-2" : "-left-2"
                 }`}
               >
-                {isUserMsg ? <CurrentUserSvg /> : <FriendSvg />}
+                {isUserMsg ? <CurrentUserMsgCorner /> : <FriendMsgCorner />}
               </span>
               <span>{data.message}</span>
             </p>
