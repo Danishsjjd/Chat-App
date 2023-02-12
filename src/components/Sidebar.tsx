@@ -3,11 +3,12 @@ import { useEffect, useState } from "react"
 import { AiOutlineSearch } from "react-icons/ai"
 import { BsFilter } from "react-icons/bs"
 import { Link, useParams } from "react-router-dom"
+import { RotatingLines } from "react-loader-spinner"
 import createChat from "../assets/icons/create-chat.svg"
 import { useUser } from "../context/user"
 import { logout } from "../firebase/auth"
 import { findFriend, getAllCurrentUserChats } from "../firebase/firestore/chat"
-import { ChatCallback, ChatRelatedUsers } from "../types/chat"
+import { ChatCallback } from "../types/chat"
 import { StoreUser } from "../types/user"
 import { AppDialogProps } from "./Dialog"
 import IconBtn from "./IconBtn"
@@ -19,30 +20,34 @@ const Sidebar = () => {
   } = useUser()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [chats, setChats] = useState<ChatCallback[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const unsub = getAllCurrentUserChats(user as StoreUser, (userData) => {
-      setChats((pre) => {
-        if (userData.username === user?.username) return pre
+    const unsub = getAllCurrentUserChats(
+      user as StoreUser,
+      setIsLoading,
+      (userData) => {
+        setChats((pre) => {
+          if (userData.username === user?.username) return pre
 
-        const exists = pre.some((data) => data.chatId === userData.chatId)
+          const exists = pre.some((data) => data.chatId === userData.chatId)
 
-        if (exists)
-          return pre.map((data) => {
-            if (data.chatId == userData.chatId)
-              // TODO: update isReadLatestMsg in cloud
-              return {
-                ...data,
-                latestMessage: userData.latestMessage,
-                createdAt: userData.createdAt,
-                isReadLatestMsg: true,
-              }
-            return data
-          })
+          if (exists)
+            return pre.map((data) => {
+              if (data.chatId == userData.chatId)
+                return {
+                  ...data,
+                  latestMessage: userData.latestMessage,
+                  createdAt: userData.createdAt,
+                  isReadLatestMsg: userData.isReadLatestMsg,
+                }
+              return data
+            })
 
-        return [...pre, userData]
-      })
-    })
+          return [...pre, userData]
+        })
+      }
+    )
     return () => {
       unsub.then((data) => {
         if (data) data()
@@ -55,6 +60,7 @@ const Sidebar = () => {
       if (data) setIsDialogOpen(false)
     })
   }
+
   return (
     <>
       <UsernameDialog
@@ -68,8 +74,18 @@ const Sidebar = () => {
       <TopBar setDialog={setIsDialogOpen} />
       <SearchBar />
 
-      <div className="h-[calc(100vh-136px)] overflow-y-auto">
-        {chats.length > 0 ? (
+      <div
+        className={`${
+          isLoading ? "grid place-items-center" : ""
+        } h-[calc(100vh-136px)] overflow-y-auto`}
+      >
+        {isLoading ? (
+          <RotatingLines
+            visible={true}
+            ariaLabel="chats-loading"
+            strokeColor="white"
+          />
+        ) : chats.length > 0 ? (
           chats.map((chat) => (
             <FriendSlug
               users={chat.users}

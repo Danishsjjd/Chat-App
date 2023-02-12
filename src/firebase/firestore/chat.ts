@@ -108,6 +108,7 @@ export const findFriend = async (
 // TODO: Add loader in sidebar
 export const getAllCurrentUserChats = async (
   user: StoreUser,
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
   cb?: (users: ChatCallback) => void
 ) => {
   const chatBetweenRef = collection(
@@ -119,7 +120,7 @@ export const getAllCurrentUserChats = async (
     where("users", "array-contains", user.uid),
     orderBy("createdAt", "desc")
   )
-
+  let isLoading = true
   const unsub = onSnapshot(q, async (data) => {
     const chatBetween = data.docs.map((collectionBetweenInstance) => ({
       id: collectionBetweenInstance.id,
@@ -146,6 +147,10 @@ export const getAllCurrentUserChats = async (
             users: key.users,
           })
       })
+    }
+    if (isLoading) {
+      setIsLoading(false)
+      isLoading = true
     }
   })
 
