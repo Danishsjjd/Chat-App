@@ -7,7 +7,7 @@ import createChat from "../assets/icons/create-chat.svg"
 import { useUser } from "../context/user"
 import { logout } from "../firebase/auth"
 import { findFriend, getAllCurrentUserChats } from "../firebase/firestore/chat"
-import { ChatRelatedUsers } from "../types/chat"
+import { ChatCallback, ChatRelatedUsers } from "../types/chat"
 import { StoreUser } from "../types/user"
 import { AppDialogProps } from "./Dialog"
 import IconBtn from "./IconBtn"
@@ -18,7 +18,7 @@ const Sidebar = () => {
     state: { user },
   } = useUser()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [chats, setChats] = useState<ChatRelatedUsers[]>([])
+  const [chats, setChats] = useState<ChatCallback[]>([])
 
   useEffect(() => {
     const unsub = getAllCurrentUserChats(user as StoreUser, (userData) => {
@@ -30,7 +30,7 @@ const Sidebar = () => {
         if (exists)
           return pre.map((data) => {
             if (data.chatId == userData.chatId)
-              // TODO: update isReadLastestMsg in cloud
+              // TODO: update isReadLatestMsg in cloud
               return {
                 ...data,
                 latestMessage: userData.latestMessage,
@@ -72,6 +72,7 @@ const Sidebar = () => {
         {chats.length > 0 ? (
           chats.map((chat) => (
             <FriendSlug
+              users={chat.users}
               friendDp={chat.photoURL}
               friendName={chat.username}
               lastMsg={chat.latestMessage}
@@ -104,6 +105,7 @@ type FriendProps = {
   friendName: string
   createdAt: Date
   chatId: string
+  users: string[]
 }
 
 const FriendSlug = ({
@@ -112,6 +114,7 @@ const FriendSlug = ({
   lastMsg,
   createdAt,
   chatId,
+  users,
 }: FriendProps) => {
   const { id } = useParams()
   const isActive = id === chatId
@@ -121,6 +124,7 @@ const FriendSlug = ({
         isActive && "bg-zinc-700/30"
       }`}
       to={`/chat/${chatId}`}
+      state={{ users }}
     >
       <img
         src={`${friendDp}`}

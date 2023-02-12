@@ -14,7 +14,13 @@ import {
   writeBatch,
 } from "firebase/firestore"
 import toast from "react-hot-toast"
-import { Chat, ChatBetween, ChatRelatedUsers, ChatUser } from "../../types/chat"
+import {
+  Chat,
+  ChatBetween,
+  ChatCallback,
+  ChatRelatedUsers,
+  ChatUser,
+} from "../../types/chat"
 import { StoreUser } from "../../types/user"
 import { db } from "../config"
 
@@ -102,7 +108,7 @@ export const findFriend = async (
 // TODO: Add loader in sidebar
 export const getAllCurrentUserChats = async (
   user: StoreUser,
-  cb?: (users: ChatRelatedUsers) => void
+  cb?: (users: ChatCallback) => void
 ) => {
   const chatBetweenRef = collection(
     db,
@@ -115,14 +121,10 @@ export const getAllCurrentUserChats = async (
   )
 
   const unsub = onSnapshot(q, async (data) => {
-    const chatBetween = data.docs.map((collectionBetweenInstance) => {
-      const chatData = collectionBetweenInstance.data()
-      return {
-        id: collectionBetweenInstance.id,
-        latestMessage: chatData.latestMessage,
-        createAt: chatData.createdAt,
-      }
-    })
+    const chatBetween = data.docs.map((collectionBetweenInstance) => ({
+      id: collectionBetweenInstance.id,
+      ...collectionBetweenInstance.data(),
+    }))
 
     for (const key of chatBetween) {
       const chatUserRef = collection(
@@ -140,7 +142,8 @@ export const getAllCurrentUserChats = async (
             ...chatRelatedDoc,
             chatId: key.id,
             latestMessage: key.latestMessage,
-            createdAt: key.createAt || new Date().getTime(),
+            createdAt: key.createdAt || new Date().getTime(),
+            users: key.users,
           })
       })
     }
@@ -154,10 +157,17 @@ type Props = {
   user: StoreUser
   message: string
   cb?: () => void
+  chatUsers: string[]
 }
 
 // TODO: handle errors
-export const sendMessage = async ({ chatId, user, message, cb }: Props) => {
+export const sendMessage = async ({
+  chatId,
+  user,
+  message,
+  cb,
+  chatUsers,
+}: Props) => {
   const chatRef = doc(
     db,
     "chat",
@@ -186,17 +196,25 @@ export const sendMessage = async ({ chatId, user, message, cb }: Props) => {
     latestMessage: message,
   })
 
-  const userChatBetweenRef = doc(
-    db,
-    "chatBetween",
-    chatId,
-    "chatRelatedUser",
-    user.uid
-  ) as DocumentReference<ChatUser>
+  const userChatBetweenRef = (uid = user.uid) =>
+    doc(
+      db,
+      "chatBetween",
+      chatId,
+      "chatRelatedUser",
+      uid
+    ) as DocumentReference<ChatUser>
 
-  batch.update(userChatBetweenRef, { isReadLatestMsg: true })
+  batch.update(userChatBetweenRef(), { isReadLatestMsg: true })
+
+  chatUsers
+    .filter((uid) => user.uid !== uid)
+    .map((uid) => {
+      batch.update(userChatBetweenRef(uid), { isReadLatestMsg: false })
+    })
 
   await batch.commit()
+
   if (cb) cb()
 }
 

@@ -1,20 +1,30 @@
 import { useEffect, useState } from "react"
 import { IoSend } from "react-icons/io5"
 import { MdPhotoSizeSelectActual } from "react-icons/md"
-import { useParams } from "react-router-dom"
+import { useParams, useLocation, useNavigate } from "react-router-dom"
+import { CurrentUserMsgCorner, FriendMsgCorner } from "../assets/icons/corner"
 import { useUser } from "../context/user"
 import { messagesListener, sendMessage } from "../firebase/firestore/chat"
 import { Chat } from "../types/chat"
 import { StoreUser } from "../types/user"
+import { default as ChatComp } from "./Chat"
 import IconBtn from "./IconBtn"
-import { CurrentUserMsgCorner, FriendMsgCorner } from "../assets/icons/corner"
 
 const ActiveChat = () => {
+  const { state } = useLocation()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!state) navigate("/")
+  }, [])
+
+  if (!state) return <ChatComp />
+
   return (
     <div className="relative h-full">
       <TopBar />
       <Messages />
-      <MessageInput />
+      <MessageInput users={state.users} />
     </div>
   )
 }
@@ -69,11 +79,7 @@ const Messages = ({}) => {
   )
 }
 
-const TopBar = () => {
-  return <div className="h-20 w-full rounded bg-zinc-700"></div>
-}
-
-const MessageInput = ({}) => {
+const MessageInput = ({ users }: { users: string[] }) => {
   const { id } = useParams()
   const { state } = useUser()
   const [message, setMessage] = useState("")
@@ -81,6 +87,7 @@ const MessageInput = ({}) => {
   const msgSendHandler = (e: React.FormEvent) => {
     e.preventDefault()
     sendMessage({
+      chatUsers: users,
       message,
       chatId: id as string,
       user: state.user as StoreUser,
@@ -109,6 +116,10 @@ const MessageInput = ({}) => {
       </form>
     </div>
   )
+}
+
+const TopBar = () => {
+  return <div className="h-20 w-full rounded bg-zinc-700"></div>
 }
 
 export default ActiveChat

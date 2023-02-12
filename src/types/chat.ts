@@ -7,19 +7,10 @@ export type Chat = {
   createAt: Date // <- index here
 }
 
-type Check = {
-  // ! root doc have same id as ChatBetween
-  id: string
-  username: string
-  message?: string
-  file?: string
-  createAt: Date // <- index here
-}
-
 export type ChatBetween = {
   // ! save id as Chat
   latestMessage: string
-  users: string[] // id will be userId
+  users: string[]
   createdAt: Date
 }
 
@@ -34,3 +25,5 @@ export type ChatRelatedUsers = ChatUser & {
   latestMessage: string
   createdAt: Date
 }
+
+export type ChatCallback = ChatRelatedUsers & { users: string[] }
