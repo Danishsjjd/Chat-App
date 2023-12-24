@@ -22,7 +22,7 @@ export const signUpWithEmail = (email: string, password: string) => {
     success: "Successfully Login",
   })
 }
-// TODO: implement ui
+
 export const signInWithEmail = (email: string, password: string) =>
   toast.promise(signInWithEmailAndPassword(auth, email, password), {
     error: (e: AuthError) => e.message,

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^1.7.10",
+    "@types/node": "20",
     "date-fns": "^2.29.3",
     "firebase": "^9.17.1",
     "react": "^18.2.0",
